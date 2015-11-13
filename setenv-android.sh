@@ -69,15 +69,15 @@ case $_ANDROID_ARCH in
 	arch-arm)	  
 		export MACHINE=armv7
 		export ARCH=arm
-	  _ANDROID_CROSS_COMPILE="arm-linux-androideabi-"
-      _ANDROID_EABI="arm-linux-androideabi-${_ANDROID_EABI_VERSION}"
-	  ;;
+	  	_ANDROID_CROSS_COMPILE="arm-linux-androideabi-"
+      	_ANDROID_EABI="arm-linux-androideabi-${_ANDROID_EABI_VERSION}"
+	  	;;
 	arch-x86)	  
 		export MACHINE=i686
 		export ARCH=x86
-	  _ANDROID_CROSS_COMPILE="i686-linux-android-"
-      _ANDROID_EABI="x86-${_ANDROID_EABI_VERSION}"
-	  ;;	  
+	  	_ANDROID_CROSS_COMPILE="i686-linux-android-"
+      	_ANDROID_EABI="x86-${_ANDROID_EABI_VERSION}"
+	  	;;	  
 	*)
 	  echo "ERROR ERROR ERROR NOT SUPPORT ARCH ${_ANDROID_ARCH}"
 	  exit 1

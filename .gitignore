@@ -2,4 +2,6 @@
 fips_install/
 openssl_install/
 openssl-1.0.1e/
+openssl-1.0.1k/
 openssl-fips-2.0.5/
+openssl-fips-2.0.10/
