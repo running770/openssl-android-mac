@@ -1,0 +1,24 @@
+501  cd /Users/justinliu/Documents/git/openssl-android-mac 
+  502  tar xzf openssl-fips-2.0.5.tar.gz 
+  503  find $PWD -name incore
+  504  export FIPS_SIG=/Users/justinliu/Documents/git/openssl-android-mac/openssl-fips-2.0.5/util/incore
+  505  echo $FIPS_SIG
+  506  . ./setenv-android.sh 
+  507  cd openssl-fips-2.0.5
+  508  ./config
+  509  make
+  510  sudo rm -Rf /usr/local/ssl
+  511  sudo make install
+  512  ls /usr/local/ssl
+  513  sudo cp $FIPS_SIG /usr/local/ssl/fips-2.0/bin
+  514  ls /usr/local/ssl/fips-2.0/bin
+  515  cd ..
+  516  . ./setenv-android.sh 
+  517  tar xzf openssl-1.0.1e.tar.gz 
+  518  cd openssl-1.0.1e
+  519  perl -pi -e 's/install: all install_docs install_sw/install: install_sw/g' Makefile.org
+  520  ./config fips --with-fipsdir=/usr/local/ssl/fips-2.0/
+  521  make depend
+  522  make all
+  523  sudo -E make install CC=$ANDROID_TOOLCHAIN/arm-linux-androideabi-gcc RANLIB=$ANDROID_TOOLCHAIN/arm-linux-androideabi-ranlib
+  524  history
