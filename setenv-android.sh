@@ -9,7 +9,7 @@
 # ANDROID_NDK_ROOT is not specified, the script will try to pick it
 # up with the value of _ANDROID_NDK_ROOT below. If ANDROID_NDK_ROOT
 # is set, then the value is ignored.
-_ANDROID_NDK="android-ndk-r10c"
+_ANDROID_NDK="android-ndk-r8e"
 
 # Set _ANDROID_EABI to the EABI you want to use. You can find the
 # list in $ANDROID_NDK_ROOT/toolchains. This value is always used.
