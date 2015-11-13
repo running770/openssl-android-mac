@@ -6,37 +6,42 @@ pushd ${SCRIPT_DIR}
 OPENSSL_VERSION=1.0.1e
 FIPS_VERSION=2.0.5
 
-OPENSSL_INSTALL_DIR=${SCRIPT_DIR}/openssl_install
+FIPS_INSTALL_DIR=${SCRIPT_DIR}/fips_install
+INSTALL_DIR=${SCRIPT_DIR}/openssl_install
 
 rm -Rf openssl-fips-${FIPS_VERSION}
 rm -Rf openssl-${OPENSSL_VERSION}
+rm -Rf ${FIPS_INSTALL_DIR}
+rm -Rf ${INSTALL_DIR}
 
 tar xzf openssl-fips-${FIPS_VERSION}.tar.gz
-tar xzf openssl-${OPENSSL_VERSION}.tar.gz
 
-FIPS_SIG=${SCRIPT_DIR}/openssl-fips-${FIPS_VERSION}/util/incore
+
+export FIPS_SIG=${SCRIPT_DIR}/openssl-fips-${FIPS_VERSION}/util/incore
+
 
 . ./setenv-android.sh
-
 pushd openssl-fips-${FIPS_VERSION}
-./config #android-armv7
+./config --prefix=${FIPS_INSTALL_DIR}/
 make
-sudo rm -Rf /usr/local/ssl/fips-2.0
-sudo make install
+
+make install
+cp $FIPS_SIG ${FIPS_INSTALL_DIR}/bin
 popd
-cp -R /usr/local/ssl/fips-2.0 fips-2.0
-cp ${FIPS_SIG} fips-2.0/bin
+#cp -R /usr/local/ssl/fips-2.0 fips-2.0
+#cp ${FIPS_SIG} fips-2.0/bin
 
 
+tar xzf openssl-${OPENSSL_VERSION}.tar.gz
 . ./setenv-android.sh
 pushd openssl-${OPENSSL_VERSION}
 perl -pi -e 's/install: all install_docs install_sw/install: install_sw/g' Makefile.org
-./config fips --with-fipsdir=/Users/justinliu/Documents/git/openssl-android-mac/fips-2.0/
+./config fips --with-fipsdir=${FIPS_INSTALL_DIR}/ --prefix=${INSTALL_DIR}/
 make depend
-make
-sudo -E make install CC=$ANDROID_TOOLCHAIN/arm-linux-androideabi-gcc RANLIB=$ANDROID_TOOLCHAIN/arm-linux-androideabi-ranlib
+make all
+make install CC=$ANDROID_TOOLCHAIN/arm-linux-androideabi-gcc RANLIB=$ANDROID_TOOLCHAIN/arm-linux-androideabi-ranlib
 popd
-cp -R /usr/local/ssl ${OPENSSL_INSTALL_DIR}
+# cp -R /usr/local/ssl ${OPENSSL_INSTALL_DIR}
 
 
 popd
