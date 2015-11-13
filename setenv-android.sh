@@ -13,7 +13,11 @@ _ANDROID_NDK="android-ndk-r10c"
 
 # Set _ANDROID_EABI to the EABI you want to use. You can find the
 # list in $ANDROID_NDK_ROOT/toolchains. This value is always used.
-_ANDROID_EABI="arm-linux-androideabi-4.6"
+
+# _ANDROID_EABI_PREFIX="arm-linux-androideabi-"
+_ANDROID_EABI_VERSION="4.6"
+
+_ANDROID_CROSS_COMPILE="arm-linux-androideabi-"
 
 # Set _ANDROID_API to the API you want to use. You should set it
 # to one of: android-14, android-9, android-8, android-14, android-5
@@ -22,6 +26,87 @@ _ANDROID_EABI="arm-linux-androideabi-4.6"
 # Android 5.0, there will likely be another plaform added (android-18?).
 # This value is always used.
 _ANDROID_API="android-14"
+
+# Set _ANDROID_ARCH to the arch you want to use. 
+# One of arch-arm, arch-x86
+_ANDROID_ARCH=arch-arm
+
+while [ "$1" != "" ]; do
+	case "$1" in
+		-ndk)
+			shift
+			_ANDROID_NDK=$1
+			;;
+# 		--eabi-prefix)
+# 			shift
+# 			_ANDROID_EABI_PREFIX=$1
+# 			;;
+		--eabi-version)
+			shift
+			_ANDROID_EABI_VERSION=$1
+			;;
+		-api)
+			shift
+			_ANDROID_API=$1
+			;;
+		-arch)
+			shift
+			_ANDROID_ARCH=$1
+			;;
+		
+		*)
+			echo "Wrong parameter:$1"
+			#print_usage
+			exit 1
+			;;
+	esac
+	# Next param
+	shift
+done
+
+
+case $_ANDROID_ARCH in
+	arch-arm)	  
+		export MACHINE=armv7
+		export ARCH=arm
+	  _ANDROID_CROSS_COMPILE="arm-linux-androideabi-"
+      _ANDROID_EABI="arm-linux-androideabi-${_ANDROID_EABI_VERSION}"
+	  ;;
+	arch-x86)	  
+		export MACHINE=i686
+		export ARCH=x86
+	  _ANDROID_CROSS_COMPILE="i686-linux-android-"
+      _ANDROID_EABI="x86-${_ANDROID_EABI_VERSION}"
+	  ;;	  
+	*)
+	  echo "ERROR ERROR ERROR NOT SUPPORT ARCH ${_ANDROID_ARCH}"
+	  exit 1
+	  ;;
+esac
+
+
+
+#####################################################################
+
+# Most of these should be OK (MACHINE, SYSTEM, ARCH). RELEASE is ignored.
+# export MACHINE=armv7
+export RELEASE=2.6.37
+export SYSTEM=android
+# export ARCH=arm
+
+# For the Android toolchain
+# https://android.googlesource.com/platform/ndk/+/ics-mr0/docs/STANDALONE-TOOLCHAIN.html
+export ANDROID_SYSROOT="$ANDROID_NDK_ROOT/platforms/$_ANDROID_API/${_ANDROID_ARCH}"
+export SYSROOT="$ANDROID_SYSROOT"
+export NDK_SYSROOT="$ANDROID_SYSROOT"
+export ANDROID_NDK_SYSROOT="$ANDROID_SYSROOT"
+export ANDROID_API="$_ANDROID_API"
+
+# CROSS_COMPILE and ANDROID_DEV are DFW (Don't Fiddle With). Its used by OpenSSL build system.
+export CROSS_COMPILE=${_ANDROID_CROSS_COMPILE}
+export ANDROID_DEV="$ANDROID_NDK_ROOT/platforms/$_ANDROID_API/${_ANDROID_ARCH}/usr"
+export HOSTCC=gcc
+
 
 #####################################################################
 
@@ -59,22 +144,22 @@ fi
 # http://groups.google.com/group/android-ndk/browse_thread/thread/a998e139aca71d77
 if [ -z "$ANDROID_NDK_ROOT" ] || [ ! -d "$ANDROID_NDK_ROOT" ]; then
   echo "Error: ANDROID_NDK_ROOT is not a valid path. Please edit this script."
-  # echo "$ANDROID_NDK_ROOT"
-  # exit 1
+  echo "$ANDROID_NDK_ROOT"
+  exit 1
 fi
 
 # Error checking
 if [ ! -d "$ANDROID_NDK_ROOT/toolchains" ]; then
   echo "Error: ANDROID_NDK_ROOT/toolchains is not a valid path. Please edit this script."
-  # echo "$ANDROID_NDK_ROOT/toolchains"
-  # exit 1
+  echo "$ANDROID_NDK_ROOT/toolchains"
+  exit 1
 fi
 
 # Error checking
 if [ ! -d "$ANDROID_NDK_ROOT/toolchains/$_ANDROID_EABI" ]; then
   echo "Error: ANDROID_EABI is not a valid path. Please edit this script."
-  # echo "$ANDROID_NDK_ROOT/toolchains/$_ANDROID_EABI"
-  # exit 1
+  echo "$ANDROID_NDK_ROOT/toolchains/$_ANDROID_EABI"
+  exit 1
 fi
 
 #####################################################################
@@ -97,22 +182,22 @@ done
 # Error checking
 if [ -z "$ANDROID_TOOLCHAIN" ] || [ ! -d "$ANDROID_TOOLCHAIN" ]; then
   echo "Error: ANDROID_TOOLCHAIN is not valid. Please edit this script."
-  # echo "$ANDROID_TOOLCHAIN"
-  # exit 1
+  echo "$ANDROID_TOOLCHAIN"
+  exit 1
 fi
 
 # Error checking
-if [ ! -e "$ANDROID_TOOLCHAIN/arm-linux-androideabi-gcc" ]; then
+if [ ! -e "$ANDROID_TOOLCHAIN/${CROSS_COMPILE}gcc" ]; then
   echo "Error: Failed to find Android gcc. Please edit this script."
-  # echo "$ANDROID_TOOLCHAIN/arm-linux-androideabi-gcc"
-  # exit 1
+  echo "$ANDROID_TOOLCHAIN/${CROSS_COMPILE}gcc"
+  exit 1
 fi
 
 # Error checking
-if [ ! -e "$ANDROID_TOOLCHAIN/arm-linux-androideabi-ranlib" ]; then
+if [ ! -e "$ANDROID_TOOLCHAIN/${CROSS_COMPILE}ranlib" ]; then
   echo "Error: Failed to find Android ranlib. Please edit this script."
-  # echo "$ANDROID_TOOLCHAIN/arm-linux-androideabi-ranlib"
-  # exit 1
+  echo "$ANDROID_TOOLCHAIN/${CROSS_COMPILE}ranlib"
+  exit 1
 fi
 
 # Only modify/export PATH if ANDROID_TOOLCHAIN good
@@ -125,15 +210,15 @@ fi
 
 # For the Android SYSROOT. Can be used on the command line with --sysroot
 # https://android.googlesource.com/platform/ndk/+/ics-mr0/docs/STANDALONE-TOOLCHAIN.html
-export ANDROID_SYSROOT="$ANDROID_NDK_ROOT/platforms/$_ANDROID_API/arch-arm"
-export SYSROOT="$ANDROID_SYSROOT"
-export NDK_SYSROOT="$ANDROID_SYSROOT"
+#export ANDROID_SYSROOT="$ANDROID_NDK_ROOT/platforms/$_ANDROID_API/arch-arm"
+#export SYSROOT="$ANDROID_SYSROOT"
+#export NDK_SYSROOT="$ANDROID_SYSROOT"
 
 # Error checking
 if [ -z "$ANDROID_SYSROOT" ] || [ ! -d "$ANDROID_SYSROOT" ]; then
   echo "Error: ANDROID_SYSROOT is not valid. Please edit this script."
-  # echo "$ANDROID_SYSROOT"
-  # exit 1
+  echo "$ANDROID_SYSROOT"
+  exit 1
 fi
 
 #####################################################################
@@ -161,30 +246,11 @@ fi
 # Error checking
 if [ -z "$FIPS_SIG" ] || [ ! -e "$FIPS_SIG" ]; then
   echo "Error: FIPS_SIG does not specify incore module. Please edit this script."
-  # echo "$FIPS_SIG"
-  # exit 1
+  echo "$FIPS_SIG"
+  exit 1
 fi
 
-#####################################################################
 
-# Most of these should be OK (MACHINE, SYSTEM, ARCH). RELEASE is ignored.
-export MACHINE=armv7
-export RELEASE=2.6.37
-export SYSTEM=android
-export ARCH=arm
-
-# For the Android toolchain
-# https://android.googlesource.com/platform/ndk/+/ics-mr0/docs/STANDALONE-TOOLCHAIN.html
-export ANDROID_SYSROOT="$ANDROID_NDK_ROOT/platforms/$_ANDROID_API/arch-arm"
-export SYSROOT="$ANDROID_SYSROOT"
-export NDK_SYSROOT="$ANDROID_SYSROOT"
-export ANDROID_NDK_SYSROOT="$ANDROID_SYSROOT"
-export ANDROID_API="$_ANDROID_API"
-
-# CROSS_COMPILE and ANDROID_DEV are DFW (Don't Fiddle With). Its used by OpenSSL build system.
-export CROSS_COMPILE="arm-linux-androideabi-"
-export ANDROID_DEV="$ANDROID_NDK_ROOT/platforms/$_ANDROID_API/arch-arm/usr"
-export HOSTCC=gcc
 
 VERBOSE=1
 if [ ! -z "$VERBOSE" ] && [ "$VERBOSE" != "0" ]; then
